@@ -1,0 +1,136 @@
+---
+title: "Advanced Bioinformatics 2022 Assessment"
+author: '21134573'
+date: "03/05/2022"
+output: html_document
+---
+
+### Task 3.1
+#### Using the sum() function and : operator, write an expression in the code snippet to evaluate the sum of all integers between 5 and 55. (5pt)
+
+```{r}
+#Pass a vector 5-55 to sum, to add the elements together.
+sum(5:55)
+```
+
+### Task 3.2 
+#### Write a function called sumfun with one input parameter, called n, that calculates the sum of all integers between 5 and n. Use the function to do the calculation for n = 10, n = 20, and n = 100 and present the results. (5pt)
+
+```{r}
+#function called sumfun that takes n and passes a vector 5:n and then tested with 3 calculations inputs
+sumfun <- function(n) 
+  sum(5:n)
+
+sumfun(10)
+sumfun(20)
+sumfun(100)
+```
+
+### Task 3.3 
+#### The famous Fibonacci series is calculated as the sum of the two preceding members of the sequence, where the first two steps in the sequence are 1, 1. Write an R script using a for loop to calculate and print out the first 12 entries of the Fibonacci series. (5pt)
+
+```{r}
+#fibonacci <- interpret length as numbers(12)
+#for fibonacci positions [1] + [2] = 1
+#for fibonacci positions 3:12 = take sum of two position values before a (a-2 positions, a-1 position)
+fibonacci <- numeric(12)
+fibonacci[1] <- fibonacci[2] <- 1
+for (a in 3:12) fibonacci[a] <- fibonacci[a - 2] + fibonacci[a - 1]
+print(fibonacci)
+```
+
+### Task 3.4 
+#### With the mtcars dataset bundled with R, use ggplot to generate a box of miles per gallon (in the variable mpg) as a function of the number of gears (in the variable gear). Use the fill aesthetic to colour bars by number of gears. (5pt)
+
+```{r}
+library(ggplot2)
+data(mtcars)
+
+ggplot(mtcars, aes(x= as.factor(gear), y=mpg, fill = factor(gear))) + 
+  geom_boxplot(alpha=0.9) +
+  labs(
+    title = "Miles per Gallon (mpg) for Number of Gears",
+    x = "Number of Gears",
+    y = "Miles per gallon (mpg)") +
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5)) +
+  scale_fill_brewer(palette="Accent")
+```
+
+### Task 3.5 
+#### Using the cars dataset and the function lm, fit a linear relationship between speed and breaking distance in the variable distance. What are the fitted slope and intercept of the line, and their standard errors? What are the units used for the variables in the dataset? (5pt)
+
+```{r}
+data(cars)
+simple.fit = lm(dist~speed, data=cars) #simple linear regression showing the relationship
+summary(simple.fit)
+
+# Fitted slope: 3.9324
+# Intercept: -17.5791
+# Standard errors: slope = 0.4155; intercept = 6.7584
+# Variable units (from help(cars)): Speed (mph) & Stopping distance (ft)
+
+# When range of speed covers 0, the average distance is -17.529. An increase in speed has a positive effect on the dependent variable distance with one unit increment of speed results in 3.932 increase in distance.
+```
+
+
+### Task 3.6 
+#### Use ggplot to plot the data points from Task 6 and the linear fit. (5pt)
+
+```{r}
+ggplot(cars, aes(x = speed, y = dist)) +
+  geom_point(shape=18) +        #creates scatterplot + shape of points
+  geom_smooth(method = "lm", color="darkred", fill="lightsalmon") +  #displays the linear regression line, specifying colour of line and standard errors.
+  ggtitle("Linear Trend Between Speed (mph) and Braking Distance (ft)") +
+  xlab("Speed (mph)") +
+  ylab("Breaking Distance (ft)") +
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5))
+```
+
+### Task 3.7 
+#### Again using the cars dataset, now use linear regression (lm) to estimate the average reaction time for the driver to start breaking (in seconds). To simplify matters you may assume that once breaking commences, breaking distance is proportional to the square of the speed. Explain the steps in your analysis. Do you get reasonable results? Finally, use ggplot to plot the data points and the fitted relationship. (10pt)
+
+```{r}
+data(cars)
+
+cars$speedms <- (cars$speed*0.44704)   #mph -> metres/sec
+cars$BDm <- (cars$dist)*0.305 #ft -> metres
+
+#The braking distance can be split into two components:  
+#Distance = Reaction Time Distance + Braking distance 
+
+#As per the question, we can assume:
+#Braking Distance ~ Speed^2
+
+#Therefore we need to determine the reaction time distance relationship which should be directly proportional to the initial speed of the vehicle:
+#Reaction Time Distance ~ Speed
+
+#Putting this together we get the suggested model of:
+#BDm ~ a*speedms + b*speedms^2 + c   and given distance = speed*time whereby a is the estimated reaction time.
+
+# We can assume that when speed is equal to 0, distance is also equal 0 and can 
+#therefore remove the implied intercept from the model so that the curve 
+#intersects the axis at the origin by applying the -1 syntax at the end of our 
+#formula as specified in the R documentation (y ~ x - 1)
+
+mlr <- lm(BDm ~ speedms + I(speedms^2)-1,cars)
+summary(mlr)
+#Adjusted R-squared:  0.9097
+```
+
+#Therefore, the estimated driver reaction time equals the constant as 0.85 
+#seconds. The p-values of each relationship are <0.05 and therefore significant 
+#based on 95% confidence. This result is reasonable as on average, reaction times 
+#are typically between 0.2 seconds and 0.9 s. (https://www.bbc.co.uk/bitesize/guides/zq4mfcw/revision/3)
+
+```{r}
+ggplot(cars, aes(x = speedms, y = BDm)) +
+  geom_point(shape=18) +
+  geom_smooth(method = "lm", formula = "y ~ x + I(x^2)-1", alpha=0.5, colour="yellow", fill="orange") +
+  ggtitle("Reaction Time for the Driver to Start Breaking (seconds)") +
+  ylab("Distance (metres)") +
+  xlab("Speed (metres/second)") +
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5))
+```
+
+
+
